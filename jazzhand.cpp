@@ -6,7 +6,6 @@
 
 #include "task_runner.h"
 
-#define SWIPE_THRESHOLD .8
 #define CIRCLE_THRESHOLD .4
 
 using namespace Leap;
@@ -177,7 +176,7 @@ void GestureListener::onFrame(const Controller& controller) {
           doing_swipe = true;
 
           Vector direction = swipe.direction();
-          //swipe(direction);
+          swipe_action(direction);
 
           std::cout << std::string(2, ' ')
           << "Swipe id: " << gesture.id()
@@ -199,7 +198,7 @@ void GestureListener::onFrame(const Controller& controller) {
           << ", timestamp: " << frame.timestamp()
           << std::endl;
 
-          sleep(1);
+          usleep(250000);
         }
 
         break;

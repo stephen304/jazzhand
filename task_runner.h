@@ -1,7 +1,7 @@
-#include<stdio.h>
+#include <stdio.h>
+#include <Leap.h>
 
-void swipe_left();
-void swipe_right();
-void swipe_up();
-void swipe_down();
+using namespace Leap;
+
+void swipe_action(Vector direction);
 void circle_action(bool direction);
