@@ -6,6 +6,12 @@
 
 #define SWIPE_THRESHOLD .8
 #define MOUSE_SENSITIVITY 7
+#define SCREEN_WIDTH 1366
+#define SCREEN_HEIGHT 768
+#define VSCREEN_LX -170
+#define VSCREEN_UX 170
+#define VSCREEN_LY -10
+#define VSCREEN_UY 130
 
 using namespace Leap;
 
@@ -42,17 +48,46 @@ void circle_action(bool direction) {
 
 void move_mouse(Vector pos, Vector dir){
 
-    int x_offset = 800;
-    int y_offset = 1500;
+    //Calculate where finger points on place z=-300
+    float distance = 300 + pos.z;
+    float dirZ = 0;
+    if (dir.z < 0) {
+      dirZ = dir.z * -1;
+    }
+    else {
+      dirZ = dir.z;
+    }
+    float scaleFactor = distance / dirZ;
+    float backX = dir.x * scaleFactor + pos.x;
+    float backY = dir.y * scaleFactor + pos.y;
+
+    //Don't let the mouse escape!
+    if (backY < VSCREEN_LY) {
+      backY = VSCREEN_LY;
+    }
+    if (backX < VSCREEN_LX) {
+      backX = VSCREEN_LX;
+    }
+    if (backX > VSCREEN_UX) {
+      backX = VSCREEN_UX;
+    }
+    if (backY > VSCREEN_UY) {
+      backY = VSCREEN_UY;
+    }
+
+    //Make bottom-left based back coordinates
+    float backPosX = backX - VSCREEN_LX;
+    float backPosY = backY - VSCREEN_LY;
+
+    //Convert Y to top based
+    backPosY = (VSCREEN_UY - VSCREEN_LY) - backPosY;
+
+    //Convert to real screen coordinates
+    int x_pos = (backPosX / (VSCREEN_UX - VSCREEN_LX)) * SCREEN_WIDTH;
+    int y_pos = (backPosY / (VSCREEN_UY - VSCREEN_LY)) * SCREEN_HEIGHT;
 
     char command[64] = "xdotool mousemove ";
     char args[32];
-
-    int x_pos = (pos.x * MOUSE_SENSITIVITY) + x_offset;
-    if(x_pos < 0) x_pos = 0;
-
-    int y_pos = -1 * (pos.y * MOUSE_SENSITIVITY) + y_offset;
-    if(y_pos < 0 ) y_pos = 900;
 
     sprintf(args, "%d %d", x_pos, y_pos);
     strcat(command, args);
