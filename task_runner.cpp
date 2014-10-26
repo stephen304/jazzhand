@@ -60,6 +60,6 @@ void move_mouse(Vector pos, Vector dir){
     system(command);
 }
 
-void mouse_click(Vector pos, Vector dir){
+void mouse_click(){
     system("xdotool click 1");
 }

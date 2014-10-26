@@ -43,6 +43,12 @@ void GestureListener::onConnect(const Controller& controller) {
   controller.enableGesture(Gesture::TYPE_SWIPE);
 }
 
+int distance2d_squared(Vector a, Vector b){
+  int deltax = a.x-b.x;
+  int deltay = a.y-b.y;
+  return deltax+deltay;
+}
+
 float circle_counter = 0; //how much of a circle has been made
 bool doing_gesture = false;
 bool doing_circle = false;
@@ -85,12 +91,28 @@ void GestureListener::onFrame(const Controller& controller) {
 
     // Get index finger
     Finger index = hand.fingers().fingerType(Finger::TYPE_INDEX)[0];
+    Vector index_pos;
+    Vector index_dir;
+
+    //get thumb
+    Finger thumb = hand.fingers().fingerType(Finger::TYPE_THUMB)[0];
+    Vector thumb_pos;
+    Vector thumb_dir;
 
     if (index.isExtended()){
-      Vector pos = index.tipPosition();
-      Vector dir = index.direction();
+      index_pos = index.tipPosition();
+      index_dir = index.direction();
 
-      move_mouse(pos,dir);
+      move_mouse(index_pos,index_dir);
+    }
+
+    if(thumb.isExtended()){
+      thumb_pos = index.tipPosition();
+      thumb_dir = index.tipPosition();
+
+      if(distance2d_squared(index_pos,thumb_pos) > 10 ){
+        mouse_click();
+      }
     }
 
   }
@@ -222,33 +244,31 @@ void GestureListener::onFrame(const Controller& controller) {
       case Gesture::TYPE_SCREEN_TAP:
       {
 
-        HandList hands = frame.hands();
-        for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
-          // Get the first hand
-          const Hand hand = *hl;
-
-          // Get index finger
-          Finger index = hand.fingers().fingerType(Finger::TYPE_INDEX)[0];
-
-          if (index.isExtended()){
-            Vector pos = index.stabilizedTipPosition();
-            Vector dir = index.direction();
-
-            ScreenTapGesture screentap = gesture;
-            std::cout << std::string(2, ' ')
-                << "Screen Tap id: " << gesture.id()
-                << ", state: " << stateNames[gesture.state()]
-                << ", position: " << screentap.position()
-                << ", direction: " << screentap.direction()
-                << ", timestamp: " << frame.timestamp()
-                << std::endl;
-
-            mouse_click(pos,dir);
-          }
+        // HandList hands = frame.hands();
+        // for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
+        //   // Get the first hand
+        //   const Hand hand = *hl;
+        //
+        //   // Get index finger
+        //   Finger index = hand.fingers().fingerType(Finger::TYPE_INDEX)[0];
+        //
+        //   if (index.isExtended()){
+        //     Vector pos = index.stabilizedTipPosition();
+        //     Vector dir = index.direction();
+        //
+        //     ScreenTapGesture screentap = gesture;
+        //     std::cout << std::string(2, ' ')
+        //         << "Screen Tap id: " << gesture.id()
+        //         << ", state: " << stateNames[gesture.state()]
+        //         << ", position: " << screentap.position()
+        //         << ", direction: " << screentap.direction()
+        //         << ", timestamp: " << frame.timestamp()
+        //         << std::endl;
+        //
+        //     mouse_click(pos,dir);
+        //   }
+          break;
         }
-
-        break;
-      }
       default:
         std::cout << std::string(2, ' ')  << "Unknown gesture type." << std::endl;
         break;
