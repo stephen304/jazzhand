@@ -142,7 +142,7 @@ void GestureListener::onFrame(const Controller& controller) {
 
           if(circle_counter >= CIRCLE_THRESHOLD){
             circle_counter = 0;
-            //circle(clockwise);
+            circle_action(clockwise);
             std::cout << "scroll" << std::endl;
           }
 
