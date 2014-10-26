@@ -13,7 +13,6 @@ const std::string fingerNames[] = {"Thumb", "Index", "Middle", "Ring", "Pinky"};
 const std::string boneNames[] = {"Metacarpal", "Proximal", "Middle", "Distal"};
 const std::string stateNames[] = {"STATE_INVALID", "STATE_START", "STATE_UPDATE", "STATE_STOP"};
 
-
 class GestureListener : public Listener {
   public:
     // virtual void onInit(const Controller&);
@@ -39,6 +38,7 @@ void GestureListener::onConnect(const Controller& controller) {
   controller.enableGesture(Gesture::TYPE_SWIPE);
 }
 
+float circle_counter = 0; //how much of a circle has been made
 void GestureListener::onFrame(const Controller& controller) {
   // Get the most recent frame
   const Frame frame = controller.frame();
@@ -132,15 +132,14 @@ void GestureListener::onFrame(const Controller& controller) {
           doing_circle = true;
         }
         // Calculate angle swept since last frame
-        static float counter = 0;
         float sweptAngle = 0;
         if (circle.state() != Gesture::STATE_START && doing_circle) {
           CircleGesture previousUpdate = CircleGesture(controller.frame(1).gesture(circle.id()));
           sweptAngle = (circle.progress() - previousUpdate.progress()) * 2 * PI;
-          counter += sweptAngle;
+          circle_counter += sweptAngle;
 
-          if(counter >= CIRCLE_THRESHOLD){
-            counter = 0;
+          if(circle_counter >= CIRCLE_THRESHOLD){
+            circle_counter = 0;
             //circle(clockwise);
           }
         }
