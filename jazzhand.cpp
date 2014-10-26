@@ -7,6 +7,10 @@
 #include "task_runner.h"
 
 #define CIRCLE_THRESHOLD .4
+#define MIN_RADIUS 30 //default 5mm
+#define MIN_ARC 2     //default 1.5*pi radians
+#define MIN_SWIPE_LENGHT 100  //default 150
+#define MIN_VELOCITY 750      //default 1000
 
 using namespace Leap;
 
@@ -198,7 +202,7 @@ void GestureListener::onFrame(const Controller& controller) {
           << ", timestamp: " << frame.timestamp()
           << std::endl;
 
-          usleep(250000);
+          usleep(250000); // half second wait
         }
 
         break;
@@ -241,6 +245,20 @@ int main(int argc, char** argv) {
     Controller controller;
     // Have the sample listener receive events from the controller
     controller.addListener(listener);
+
+    //change size of min circle
+    controller.config().setFloat("Gesture.Circle.MinRadius", MIN_RADIUS);
+
+    //change min arc of a circle
+    controller.config().setFloat("Gesture.Circle.MinArc", MIN_ARC);
+
+    //change min length of a swipe
+    controller.config().setFloat("Gesture.Swipe.MinLength", MIN_SWIPE_LENGHT);
+
+    //change min swipe velocity
+    controller.config().setFloat("Gesture.Swipe.MinVelocity", MIN_VELOCITY);
+
+    controller.config().save();
 
     //set the controller to recieve frames even when not in foreground
     controller.setPolicyFlags(Leap::Controller::POLICY_BACKGROUND_FRAMES);
