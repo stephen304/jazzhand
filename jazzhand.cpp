@@ -90,7 +90,7 @@ void GestureListener::onFrame(const Controller& controller) {
       Vector pos = index.stabilizedTipPosition();
       Vector dir = index.direction();
 
-      //print mouse in function here
+      move_mouse(pos,dir);
     }
 
   }
