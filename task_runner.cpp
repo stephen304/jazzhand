@@ -6,7 +6,7 @@
 #include "config.h"
 
 #define SWIPE_THRESHOLD .8
-#define MOUSE_SENSITIVITY 8
+#define MOUSE_SENSITIVITY 7
 
 using namespace Leap;
 
@@ -24,10 +24,10 @@ void swipe_action(Vector direction) {
     system(DOWN_SWIPE);
   }
   if (direction.z > SWIPE_THRESHOLD) {
-    system(FORWARD_SWIPE);
+    system(BACK_SWIPE);
   }
   if (direction.z < -SWIPE_THRESHOLD) {
-    system(BACK_SWIPE);
+    system(FORWARD_SWIPE);
   }
 }
 
@@ -62,4 +62,12 @@ void move_mouse(Vector pos, Vector dir){
 
 void mouse_click(){
     system("xdotool click 1");
+}
+
+void screen_tap_action(){
+  system(TAP_SCREEN);
+}
+
+void key_tap_action(){
+  system(TAP_ACTION);
 }

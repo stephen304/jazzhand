@@ -116,11 +116,10 @@ void GestureListener::onFrame(const Controller& controller) {
 
     double i = distance2d_squared(index_pos,thumb_pos);
 
-    if(i < 3800 && difftime(now,last) >= 1){
-      printf("%lf\n", i);
+    if(i < 3500 && difftime(now,last) >= 1){
       time(&last);
       mouse_click();
-    } else if(i > 3800){
+    } else if(i > 3500){
       time(&now);
     }
 
@@ -180,7 +179,6 @@ void GestureListener::onFrame(const Controller& controller) {
           if(circle_counter >= CIRCLE_THRESHOLD){
             circle_counter = 0;
             circle_action(clockwise);
-            std::cout << "scroll" << std::endl;
           }
 
           // std::cout << std::string(2, ' ')
