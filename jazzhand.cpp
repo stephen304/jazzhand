@@ -139,6 +139,11 @@ void GestureListener::onFrame(const Controller& controller) {
 
           CircleGesture previousUpdate = CircleGesture(controller.frame(1).gesture(circle.id()));
           sweptAngle = (circle.progress() - previousUpdate.progress()) * 2 * PI;
+          if (sweptAngle < 0.00008) {
+            //circle.state() = Gesture::STATE_STOP;
+            doing_gesture = false;
+            doing_circle = false;
+          }
           circle_counter += sweptAngle;
 
           if(circle_counter >= CIRCLE_THRESHOLD){
