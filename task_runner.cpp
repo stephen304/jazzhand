@@ -40,7 +40,6 @@ void circle_action(bool direction) {
 }
 
 
-
 void move_mouse(Vector pos, Vector dir){
 
     int x_offset = 800;
@@ -58,4 +57,8 @@ void move_mouse(Vector pos, Vector dir){
     sprintf(args, "%d %d", x_pos, y_pos);
     strcat(command, args);
     system(command);
+}
+
+void mouse_click(Vector pos, Vector dir){
+    system("xdotool click 1");
 }
