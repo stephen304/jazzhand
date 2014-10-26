@@ -1,5 +1,5 @@
-#define RIGHT_SWIPE "bspc desktop -f next"
-#define LEFT_SWIPE "bspc desktop -f prev"
+#define RIGHT_SWIPE "xdotool key Ctrl+Alt+Right"
+#define LEFT_SWIPE "xdotool key Ctrl+Alt+Left"
 
 #define CIRCLE_CW "xdotool click --clearmodifiers 5"
 #define CIRCLE_CCW "xdotool click --clearmodifiers 4"

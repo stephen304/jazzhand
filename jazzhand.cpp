@@ -3,13 +3,14 @@
 #include <Leap.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <time.h>
 
 #include "task_runner.h"
 
 #define CIRCLE_THRESHOLD .4
-#define MIN_RADIUS 50 //default 5mm
+#define MIN_RADIUS 30 //default 5mm
 #define MIN_ARC 3     //default 1.5*pi radians
-#define MIN_SWIPE_LENGHT 75  //default 150
+#define MIN_SWIPE_LENGHT 50  //default 150
 #define MIN_VELOCITY 650      //default 1000
 
 using namespace Leap;
@@ -43,16 +44,20 @@ void GestureListener::onConnect(const Controller& controller) {
   controller.enableGesture(Gesture::TYPE_SWIPE);
 }
 
-int distance2d_squared(Vector a, Vector b){
-  int deltax = a.x-b.x;
-  int deltay = a.y-b.y;
-  return deltax+deltay;
+double distance2d_squared(Vector a, Vector b){
+
+  double deltax = b.x-a.x;
+  double deltay = b.y-a.y;
+  double deltaz = b.z - a.z;
+  return (deltax * deltax) + (deltay * deltay) + (deltaz * deltaz);
 }
 
 float circle_counter = 0; //how much of a circle has been made
 bool doing_gesture = false;
 bool doing_circle = false;
 bool doing_swipe = false;
+time_t now;
+time_t last;
 
 void GestureListener::onFrame(const Controller& controller) {
   // Get the most recent frame
@@ -106,13 +111,17 @@ void GestureListener::onFrame(const Controller& controller) {
       move_mouse(index_pos,index_dir);
     }
 
-    if(thumb.isExtended()){
-      thumb_pos = index.tipPosition();
-      thumb_dir = index.tipPosition();
+    thumb_pos = thumb.tipPosition();
+    thumb_dir = thumb.tipPosition();
 
-      if(distance2d_squared(index_pos,thumb_pos) > 10 ){
-        mouse_click();
-      }
+    double i = distance2d_squared(index_pos,thumb_pos);
+
+    if(i < 3800 && difftime(now,last) >= 1){
+      printf("%lf\n", i);
+      time(&last);
+      mouse_click();
+    } else if(i > 3800){
+      time(&now);
     }
 
   }
@@ -174,16 +183,16 @@ void GestureListener::onFrame(const Controller& controller) {
             std::cout << "scroll" << std::endl;
           }
 
-          std::cout << std::string(2, ' ')
-                  << "Circle id: " << gesture.id()
-                  << ", state: " << stateNames[gesture.state()]
-                  << ", progress: " << circle.progress()
-                  << ", radius: " << circle.radius()
-                  << ", angle " << sweptAngle * RAD_TO_DEG
-                  <<  ", " << clockwiseness
-                  << ", timestamp: " << frame.timestamp()
-                  << ", counter: " << circle_counter
-                  << std::endl;
+          // std::cout << std::string(2, ' ')
+          //         << "Circle id: " << gesture.id()
+          //         << ", state: " << stateNames[gesture.state()]
+          //         << ", progress: " << circle.progress()
+          //         << ", radius: " << circle.radius()
+          //         << ", angle " << sweptAngle * RAD_TO_DEG
+          //         <<  ", " << clockwiseness
+          //         << ", timestamp: " << frame.timestamp()
+          //         << ", counter: " << circle_counter
+          //         << std::endl;
         }
 
         if(circle.state() == Gesture::STATE_STOP && doing_gesture && doing_circle){
@@ -205,25 +214,25 @@ void GestureListener::onFrame(const Controller& controller) {
           Vector direction = swipe.direction();
           swipe_action(direction);
 
-          std::cout << std::string(2, ' ')
-          << "Swipe id: " << gesture.id()
-          << ", state: " << stateNames[gesture.state()]
-          << ", direction: " << swipe.direction()
-          << ", speed: " << swipe.speed()
-          << ", timestamp: " << frame.timestamp()
-          << std::endl;
+          // std::cout << std::string(2, ' ')
+          // << "Swipe id: " << gesture.id()
+          // << ", state: " << stateNames[gesture.state()]
+          // << ", direction: " << swipe.direction()
+          // << ", speed: " << swipe.speed()
+          // << ", timestamp: " << frame.timestamp()
+          // << std::endl;
 
         } else if(swipe.state() == Gesture::STATE_STOP && doing_gesture && doing_swipe){
           doing_gesture = false;
           doing_swipe = false;
 
-          std::cout << std::string(2, ' ')
-          << "Swipe id: " << gesture.id()
-          << ", state: " << stateNames[gesture.state()]
-          << ", direction: " << swipe.direction()
-          << ", speed: " << swipe.speed()
-          << ", timestamp: " << frame.timestamp()
-          << std::endl;
+          // std::cout << std::string(2, ' ')
+          // << "Swipe id: " << gesture.id()
+          // << ", state: " << stateNames[gesture.state()]
+          // << ", direction: " << swipe.direction()
+          // << ", speed: " << swipe.speed()
+          // << ", timestamp: " << frame.timestamp()
+          // << std::endl;
 
           usleep(250000); // half second wait
         }
