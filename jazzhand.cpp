@@ -115,13 +115,8 @@ void GestureListener::onFrame(const Controller& controller) {
   // Get gestures
   const GestureList gestures = frame.gestures();
 
-  int gestureMatch = 0;
-  for (int g = 0; g < gestures.count(); ++g) {
-    if (gestures[g].id() == gesture_id) {
-      gestureMatch++;
-    }
-  }
-  if (gestureMatch == 0 && doing_gesture == true) {
+  //Stop expired gestures
+  if (doing_gesture == true && gesture_id != 0 && !frame.gesture(gesture_id).isValid()) {
     doing_gesture = false;
     gesture_id = 0;
     std::cout << "gesture reset due to lack of activity" << std::endl;
