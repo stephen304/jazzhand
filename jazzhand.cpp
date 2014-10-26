@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string.h>
 #include <Leap.h>
+#include <unistd.h>
+#include <cstdlib>
 
 #include "task_runner.h"
 
@@ -196,6 +198,8 @@ void GestureListener::onFrame(const Controller& controller) {
           << ", speed: " << swipe.speed()
           << ", timestamp: " << frame.timestamp()
           << std::endl;
+
+          sleep(1);
         }
 
         break;
