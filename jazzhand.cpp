@@ -83,25 +83,16 @@ void GestureListener::onFrame(const Controller& controller) {
     //           << " wrist position: " << arm.wristPosition()
     //           << " elbow position: " << arm.elbowPosition() << std::endl;
 
-    // Get fingers
-    const FingerList fingers = hand.fingers();
-    for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) {
-      const Finger finger = *fl;
-      // std::cout << std::string(4, ' ') <<  fingerNames[finger.type()]
-      //           << " finger, id: " << finger.id()
-      //           << ", length: " << finger.length()
-      //           << "mm, width: " << finger.width() << std::endl;
+    // Get index finger
+    Finger index = hand.fingers().fingerType(Finger::TYPE_INDEX)[0];
 
-      // Get finger bones
-      for (int b = 0; b < 4; ++b) {
-        Bone::Type boneType = static_cast<Bone::Type>(b);
-        Bone bone = finger.bone(boneType);
-        // std::cout << std::string(6, ' ') <<  boneNames[boneType]
-        //           << " bone, start: " << bone.prevJoint()
-        //           << ", end: " << bone.nextJoint()
-        //           << ", direction: " << bone.direction() << std::endl;
-      }
+    if (index.isExtended()){
+      Vector pos = index.stabilizedTipPosition();
+      Vector dir = index.direction();
+
+      //print mouse in function here
     }
+
   }
 
   // Get tools
