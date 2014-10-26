@@ -40,6 +40,9 @@ void GestureListener::onConnect(const Controller& controller) {
 
 float circle_counter = 0; //how much of a circle has been made
 bool doing_gesture = false;
+bool doing_circle = false;
+bool doing_swipe = false;
+
 void GestureListener::onFrame(const Controller& controller) {
   // Get the most recent frame
   const Frame frame = controller.frame();
@@ -126,7 +129,6 @@ void GestureListener::onFrame(const Controller& controller) {
           clockwise = false;
         }
 
-        bool doing_circle = false;
         if(circle.state() == Gesture::STATE_START && !doing_gesture){
           doing_gesture = true;
           doing_circle = true;
@@ -141,15 +143,10 @@ void GestureListener::onFrame(const Controller& controller) {
           if(circle_counter >= CIRCLE_THRESHOLD){
             circle_counter = 0;
             //circle(clockwise);
+            std::cout << "scroll" << std::endl;
           }
-        }
 
-        if(circle.state() == Gesture::STATE_STOP && doing_gesture){
-          doing_gesture = false;
-          doing_circle = false;
-        }
-
-        std::cout << std::string(2, ' ')
+          std::cout << std::string(2, ' ')
                   << "Circle id: " << gesture.id()
                   << ", state: " << stateNames[gesture.state()]
                   << ", progress: " << circle.progress()
@@ -157,7 +154,15 @@ void GestureListener::onFrame(const Controller& controller) {
                   << ", angle " << sweptAngle * RAD_TO_DEG
                   <<  ", " << clockwiseness
                   << ", timestamp: " << frame.timestamp()
+                  << ", counter: " << circle_counter
                   << std::endl;
+        }
+
+        if(circle.state() == Gesture::STATE_STOP && doing_gesture && doing_circle){
+          doing_gesture = false;
+          doing_circle = false;
+        }
+
         break;
       }
       case Gesture::TYPE_SWIPE:
@@ -166,45 +171,56 @@ void GestureListener::onFrame(const Controller& controller) {
 
         if(swipe.state() == Gesture::STATE_START && !doing_gesture){
 
+          doing_gesture = true;
+          doing_swipe = true;
+
           Vector direction = swipe.direction();
           //swipe(direction);
 
-        }
-
-        if(swipe.state() == Gesture::STATE_STOP && doing_gesture){
-          doing_gesture = false;
-        }
-
-        std::cout << std::string(2, ' ')
+          std::cout << std::string(2, ' ')
           << "Swipe id: " << gesture.id()
           << ", state: " << stateNames[gesture.state()]
           << ", direction: " << swipe.direction()
           << ", speed: " << swipe.speed()
           << ", timestamp: " << frame.timestamp()
           << std::endl;
+
+        } else if(swipe.state() == Gesture::STATE_STOP && doing_gesture && doing_swipe){
+          doing_gesture = false;
+          doing_swipe = false;
+
+          std::cout << std::string(2, ' ')
+          << "Swipe id: " << gesture.id()
+          << ", state: " << stateNames[gesture.state()]
+          << ", direction: " << swipe.direction()
+          << ", speed: " << swipe.speed()
+          << ", timestamp: " << frame.timestamp()
+          << std::endl;
+        }
+
         break;
       }
       case Gesture::TYPE_KEY_TAP:
       {
-        KeyTapGesture tap = gesture;
-        std::cout << std::string(2, ' ')
-          << "Key Tap id: " << gesture.id()
-          << ", state: " << stateNames[gesture.state()]
-          << ", position: " << tap.position()
-          << ", direction: " << tap.direction()
-          << std::endl;
+        // KeyTapGesture tap = gesture;
+        // std::cout << std::string(2, ' ')
+        //   << "Key Tap id: " << gesture.id()
+        //   << ", state: " << stateNames[gesture.state()]
+        //   << ", position: " << tap.position()
+        //   << ", direction: " << tap.direction()
+        //   << std::endl;
         break;
       }
       case Gesture::TYPE_SCREEN_TAP:
       {
-        ScreenTapGesture screentap = gesture;
-        std::cout << std::string(2, ' ')
-          << "Screen Tap id: " << gesture.id()
-          << ", state: " << stateNames[gesture.state()]
-          << ", position: " << screentap.position()
-          << ", direction: " << screentap.direction()
-          << ", timestamp: " << frame.timestamp()
-          << std::endl;
+        // ScreenTapGesture screentap = gesture;
+        // std::cout << std::string(2, ' ')
+        //   << "Screen Tap id: " << gesture.id()
+        //   << ", state: " << stateNames[gesture.state()]
+        //   << ", position: " << screentap.position()
+        //   << ", direction: " << screentap.direction()
+        //   << ", timestamp: " << frame.timestamp()
+        //   << std::endl;
         break;
       }
       default:
