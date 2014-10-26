@@ -170,7 +170,7 @@ void GestureListener::onFrame(const Controller& controller) {
               clockwise = false;
             }
 
-            circle_counter -= sweptAngle;
+            circle_counter -= CIRCLE_THRESHOLD;
             circle_action(clockwise);
           }
 
