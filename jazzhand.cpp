@@ -8,7 +8,7 @@
 
 #define CIRCLE_THRESHOLD .4
 #define MIN_RADIUS 30 //default 5mm
-#define MIN_ARC 2     //default 1.5*pi radians
+#define MIN_ARC 3     //default 1.5*pi radians
 #define MIN_SWIPE_LENGHT 100  //default 150
 #define MIN_VELOCITY 750      //default 1000
 
@@ -211,14 +211,32 @@ void GestureListener::onFrame(const Controller& controller) {
       }
       case Gesture::TYPE_SCREEN_TAP:
       {
-        // ScreenTapGesture screentap = gesture;
-        // std::cout << std::string(2, ' ')
-        //   << "Screen Tap id: " << gesture.id()
-        //   << ", state: " << stateNames[gesture.state()]
-        //   << ", position: " << screentap.position()
-        //   << ", direction: " << screentap.direction()
-        //   << ", timestamp: " << frame.timestamp()
-        //   << std::endl;
+
+        HandList hands = frame.hands();
+        for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
+          // Get the first hand
+          const Hand hand = *hl;
+
+          // Get index finger
+          Finger index = hand.fingers().fingerType(Finger::TYPE_INDEX)[0];
+
+          if (index.isExtended()){
+            Vector pos = index.stabilizedTipPosition();
+            Vector dir = index.direction();
+
+            ScreenTapGesture screentap = gesture;
+            std::cout << std::string(2, ' ')
+                << "Screen Tap id: " << gesture.id()
+                << ", state: " << stateNames[gesture.state()]
+                << ", position: " << screentap.position()
+                << ", direction: " << screentap.direction()
+                << ", timestamp: " << frame.timestamp()
+                << std::endl;
+
+            mouse_click(pos,dir);
+          }
+        }
+
         break;
       }
       default:
