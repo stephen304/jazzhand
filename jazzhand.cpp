@@ -39,6 +39,7 @@ void GestureListener::onConnect(const Controller& controller) {
 }
 
 float circle_counter = 0; //how much of a circle has been made
+bool doing_gesture = false;
 void GestureListener::onFrame(const Controller& controller) {
   // Get the most recent frame
   const Frame frame = controller.frame();
@@ -106,7 +107,6 @@ void GestureListener::onFrame(const Controller& controller) {
 
   // Get gestures
   const GestureList gestures = frame.gestures();
-  bool doing_gesture = false;
 
   for (int g = 0; g < gestures.count(); ++g) {
     Gesture gesture = gestures[g];
