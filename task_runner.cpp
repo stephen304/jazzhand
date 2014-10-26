@@ -6,7 +6,7 @@
 #include "config.h"
 
 #define SWIPE_THRESHOLD .8
-#define MOUSE_SENSITIVITY 7
+#define MOUSE_SENSITIVITY 8
 
 using namespace Leap;
 
@@ -44,7 +44,7 @@ void circle_action(bool cw) {
 void move_mouse(Vector pos, Vector dir){
 
     int x_offset = 800;
-    int y_offset = 1500;
+    int y_offset = 1600;
 
     char command[64] = "xdotool mousemove ";
     char args[32];
