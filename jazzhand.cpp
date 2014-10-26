@@ -2,6 +2,8 @@
 #include <string.h>
 #include <Leap.h>
 
+#include "task_runner.h"
+
 using namespace Leap;
 
 const std::string fingerNames[] = {"Thumb", "Index", "Middle", "Ring", "Pinky"};
@@ -136,6 +138,17 @@ void GestureListener::onFrame(const Controller& controller) {
       case Gesture::TYPE_SWIPE:
       {
         SwipeGesture swipe = gesture;
+
+        bool swiping = false;
+        if(stateNames[gesture.state()] == "STATE_START"){
+          swiping = true;
+          Vector direction = swipe.direction();
+
+          if(direction.x > .8){
+
+          }
+        }
+
         std::cout << std::string(2, ' ')
           << "Swipe id: " << gesture.id()
           << ", state: " << stateNames[gesture.state()]
