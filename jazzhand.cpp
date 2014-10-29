@@ -3,13 +3,14 @@
 #include <Leap.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <time.h>
 
 #include "task_runner.h"
 
 #define CIRCLE_THRESHOLD .4
-#define MIN_RADIUS 50 //default 5mm
+#define MIN_RADIUS 30 //default 5mm
 #define MIN_ARC 3     //default 1.5*pi radians
-#define MIN_SWIPE_LENGHT 75  //default 150
+#define MIN_SWIPE_LENGHT 50  //default 150
 #define MIN_VELOCITY 650      //default 1000
 
 using namespace Leap;
@@ -38,46 +39,37 @@ class GestureListener : public Listener {
 void GestureListener::onConnect(const Controller& controller) {
   std::cout << "Connected" << std::endl;
   controller.enableGesture(Gesture::TYPE_CIRCLE);
-  controller.enableGesture(Gesture::TYPE_KEY_TAP);
   controller.enableGesture(Gesture::TYPE_SCREEN_TAP);
   controller.enableGesture(Gesture::TYPE_SWIPE);
 }
 
+double distance2d_squared(Vector a, Vector b){
+
+  double deltax = b.x-a.x;
+  double deltay = b.y-a.y;
+  double deltaz = b.z - a.z;
+  return (deltax * deltax) + (deltay * deltay) + (deltaz * deltaz);
+}
+
 float circle_counter = 0; //how much of a circle has been made
 bool doing_gesture = false;
-bool doing_circle = false;
-bool doing_swipe = false;
+int gesture_id = 0;
+time_t now;
+time_t last;
 
 void GestureListener::onFrame(const Controller& controller) {
   // Get the most recent frame
   const Frame frame = controller.frame();
 
-  // report some basic information
-  // std::cout << "Frame id: " << frame.id()
-  //           << ", timestamp: " << frame.timestamp()
-  //           << ", hands: " << frame.hands().count()
-  //           << ", fingers: " << frame.fingers().count()
-  //           << ", tools: " << frame.tools().count()
-  //           << ", gestures: " << frame.gestures().count() << std::endl;
-
-  // get hand info
   HandList hands = frame.hands();
   for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
     // Get the first hand
     const Hand hand = *hl;
     std::string handType = hand.isLeft() ? "Left hand" : "Right hand";
-    // std::cout << std::string(2, ' ') << handType << ", id: " << hand.id()
-    //           << ", palm position: " << hand.palmPosition() << std::endl;
-    // Get the hand's normal vector and direction
+
     const Vector normal = hand.palmNormal();
     const Vector direction = hand.direction();
 
-    // Calculate the hand's pitch, roll, and yaw angles
-    // std::cout << std::string(2, ' ') <<  "pitch: " << direction.pitch() * RAD_TO_DEG << " degrees, "
-    //           << "roll: " << normal.roll() * RAD_TO_DEG << " degrees, "
-    //           << "yaw: " << direction.yaw() * RAD_TO_DEG << " degrees" << std::endl;
-
-    // Get the Arm bone
     Arm arm = hand.arm();
     // std::cout << std::string(2, ' ') <<  "Arm direction: " << arm.direction()
     //           << " wrist position: " << arm.wristPosition()
@@ -85,12 +77,31 @@ void GestureListener::onFrame(const Controller& controller) {
 
     // Get index finger
     Finger index = hand.fingers().fingerType(Finger::TYPE_INDEX)[0];
+    Vector index_pos;
+    Vector index_dir;
+
+    //get thumb
+    Finger thumb = hand.fingers().fingerType(Finger::TYPE_THUMB)[0];
+    Vector thumb_pos;
+    Vector thumb_dir;
 
     if (index.isExtended()){
-      Vector pos = index.tipPosition();
-      Vector dir = index.direction();
+      index_pos = index.tipPosition();
+      index_dir = index.direction();
 
-      move_mouse(pos,dir);
+      move_mouse(index_pos,index_dir);
+    }
+
+    thumb_pos = thumb.tipPosition();
+    thumb_dir = thumb.tipPosition();
+
+    double i = distance2d_squared(index_pos,thumb_pos);
+
+    if(i < 3500 && difftime(now,last) >= 1){
+      time(&last);
+      mouse_click();
+    } else if(i > 3500){
+      time(&now);
     }
 
   }
@@ -99,13 +110,17 @@ void GestureListener::onFrame(const Controller& controller) {
   const ToolList tools = frame.tools();
   for (ToolList::const_iterator tl = tools.begin(); tl != tools.end(); ++tl) {
     const Tool tool = *tl;
-    // std::cout << std::string(2, ' ') <<  "Tool, id: " << tool.id()
-    //           << ", position: " << tool.tipPosition()
-    //           << ", direction: " << tool.direction() << std::endl;
   }
 
   // Get gestures
   const GestureList gestures = frame.gestures();
+
+  //Stop expired gestures
+  if (doing_gesture == true && gesture_id != 0 && !frame.gesture(gesture_id).isValid()) {
+    doing_gesture = false;
+    gesture_id = 0;
+    std::cout << "gesture reset due to lack of activity" << std::endl;
+  }
 
   for (int g = 0; g < gestures.count(); ++g) {
     Gesture gesture = gestures[g];
@@ -114,54 +129,52 @@ void GestureListener::onFrame(const Controller& controller) {
       case Gesture::TYPE_CIRCLE:
       {
         CircleGesture circle = gesture;
-        std::string clockwiseness;
         bool clockwise = false;
 
-        if (circle.pointable().direction().angleTo(circle.normal()) <= PI/2) {
-          clockwiseness = "clockwise";
-          clockwise = true;
-        } else {
-          clockwiseness = "counterclockwise";
-          clockwise = false;
-        }
-
-        if(circle.pointables().count() > 1){
-            break;
-        }
-
+        //Check if circle started
         if(circle.state() == Gesture::STATE_START && !doing_gesture){
           doing_gesture = true;
-          doing_circle = true;
+          gesture_id = circle.id();
+          std::cout << "scroll START" << std::endl;
+          break;
         }
+        else if (circle.state() == Gesture::STATE_START) {
+          std::cout << "couldn't start scroll because existing scroll" << std::endl;
+        }
+
         // Calculate angle swept since last frame
         float sweptAngle = 0;
-        if (circle.state() != Gesture::STATE_START && doing_circle) {
+        if (circle.state() == Gesture::STATE_UPDATE && gesture_id == circle.id()) {
 
           CircleGesture previousUpdate = CircleGesture(controller.frame(1).gesture(circle.id()));
           sweptAngle = (circle.progress() - previousUpdate.progress()) * 2 * PI;
+          if (sweptAngle == -1) {
+            //circle.state() = Gesture::STATE_STOP;
+            doing_gesture = false;
+            gesture_id = 0;
+            std::cout << "scroll PREMATURELY EXIT" << std::endl;
+            break;
+          }
           circle_counter += sweptAngle;
 
           if(circle_counter >= CIRCLE_THRESHOLD){
-            circle_counter = 0;
+            //Find direction
+            if (circle.pointable().direction().angleTo(circle.normal()) <= PI/2) {
+              clockwise = true;
+            } else {
+              clockwise = false;
+            }
+
+            circle_counter -= CIRCLE_THRESHOLD;
             circle_action(clockwise);
-            std::cout << "scroll" << std::endl;
           }
 
-          std::cout << std::string(2, ' ')
-                  << "Circle id: " << gesture.id()
-                  << ", state: " << stateNames[gesture.state()]
-                  << ", progress: " << circle.progress()
-                  << ", radius: " << circle.radius()
-                  << ", angle " << sweptAngle * RAD_TO_DEG
-                  <<  ", " << clockwiseness
-                  << ", timestamp: " << frame.timestamp()
-                  << ", counter: " << circle_counter
-                  << std::endl;
         }
 
-        if(circle.state() == Gesture::STATE_STOP && doing_gesture && doing_circle){
+        if(circle.state() == Gesture::STATE_STOP && doing_gesture && gesture_id == circle.id()){
           doing_gesture = false;
-          doing_circle = false;
+          gesture_id = 0;
+          std::cout << "scroll STOP" << std::endl;
         }
 
         break;
@@ -170,80 +183,52 @@ void GestureListener::onFrame(const Controller& controller) {
       {
         SwipeGesture swipe = gesture;
 
-        if(swipe.state() == Gesture::STATE_START && !doing_gesture){
+        if((swipe.state() == Gesture::STATE_START || swipe.state() == Gesture::STATE_UPDATE) && !doing_gesture){
 
           doing_gesture = true;
-          doing_swipe = true;
+          gesture_id = swipe.id();
 
           Vector direction = swipe.direction();
           swipe_action(direction);
 
-          std::cout << std::string(2, ' ')
-          << "Swipe id: " << gesture.id()
-          << ", state: " << stateNames[gesture.state()]
-          << ", direction: " << swipe.direction()
-          << ", speed: " << swipe.speed()
-          << ", timestamp: " << frame.timestamp()
-          << std::endl;
-
-        } else if(swipe.state() == Gesture::STATE_STOP && doing_gesture && doing_swipe){
+        }
+        else if(swipe.state() == Gesture::STATE_STOP && doing_gesture && gesture_id == swipe.id()){
           doing_gesture = false;
-          doing_swipe = false;
-
-          std::cout << std::string(2, ' ')
-          << "Swipe id: " << gesture.id()
-          << ", state: " << stateNames[gesture.state()]
-          << ", direction: " << swipe.direction()
-          << ", speed: " << swipe.speed()
-          << ", timestamp: " << frame.timestamp()
-          << std::endl;
+          gesture_id = 0;
 
           usleep(250000); // half second wait
         }
 
         break;
       }
-      case Gesture::TYPE_KEY_TAP:
-      {
-        // KeyTapGesture tap = gesture;
-        // std::cout << std::string(2, ' ')
-        //   << "Key Tap id: " << gesture.id()
-        //   << ", state: " << stateNames[gesture.state()]
-        //   << ", position: " << tap.position()
-        //   << ", direction: " << tap.direction()
-        //   << std::endl;
-        break;
-      }
       case Gesture::TYPE_SCREEN_TAP:
       {
 
-        HandList hands = frame.hands();
-        for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
-          // Get the first hand
-          const Hand hand = *hl;
-
-          // Get index finger
-          Finger index = hand.fingers().fingerType(Finger::TYPE_INDEX)[0];
-
-          if (index.isExtended()){
-            Vector pos = index.stabilizedTipPosition();
-            Vector dir = index.direction();
-
-            ScreenTapGesture screentap = gesture;
-            std::cout << std::string(2, ' ')
-                << "Screen Tap id: " << gesture.id()
-                << ", state: " << stateNames[gesture.state()]
-                << ", position: " << screentap.position()
-                << ", direction: " << screentap.direction()
-                << ", timestamp: " << frame.timestamp()
-                << std::endl;
-
-            mouse_click(pos,dir);
-          }
+        // HandList hands = frame.hands();
+        // for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
+        //   // Get the first hand
+        //   const Hand hand = *hl;
+        //
+        //   // Get index finger
+        //   Finger index = hand.fingers().fingerType(Finger::TYPE_INDEX)[0];
+        //
+        //   if (index.isExtended()){
+        //     Vector pos = index.stabilizedTipPosition();
+        //     Vector dir = index.direction();
+        //
+        //     ScreenTapGesture screentap = gesture;
+        //     std::cout << std::string(2, ' ')
+        //         << "Screen Tap id: " << gesture.id()
+        //         << ", state: " << stateNames[gesture.state()]
+        //         << ", position: " << screentap.position()
+        //         << ", direction: " << screentap.direction()
+        //         << ", timestamp: " << frame.timestamp()
+        //         << std::endl;
+        //
+        //     mouse_click(pos,dir);
+        //   }
+          break;
         }
-
-        break;
-      }
       default:
         std::cout << std::string(2, ' ')  << "Unknown gesture type." << std::endl;
         break;
