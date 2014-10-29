@@ -1,8 +1,9 @@
-#include "task_runner.h"
 #include <cstdlib>
 #include <stdio.h>
 #include <string.h>
 #include <Leap.h>
+#include "task_runner.h"
+#include "config.h"
 
 #define SWIPE_THRESHOLD .8
 #define MOUSE_SENSITIVITY 7
@@ -17,31 +18,31 @@ using namespace Leap;
 
 void swipe_action(Vector direction) {
   if (direction.x > SWIPE_THRESHOLD) {
-    system("bspc desktop -f next");
+    system(RIGHT_SWIPE);
   }
   if (direction.x < -SWIPE_THRESHOLD) {
-    system("bspc desktop -f prev");
+    system(LEFT_SWIPE);
   }
   if (direction.y > SWIPE_THRESHOLD) {
-    //Up?
+    system(UP_SWIPE);
   }
   if (direction.y < -SWIPE_THRESHOLD) {
-    //Down?
+    system(DOWN_SWIPE);
   }
   if (direction.z > SWIPE_THRESHOLD) {
-    //Forward?
+    system(BACK_SWIPE);
   }
   if (direction.z < -SWIPE_THRESHOLD) {
-    //Back?
+    system(FORWARD_SWIPE);
   }
 }
 
-void circle_action(bool direction) {
-  if (direction) {
-    system("xdotool click --clearmodifiers 5");
+void circle_action(bool cw) {
+  if (cw) {
+    system(CIRCLE_CW);
   }
   else {
-    system("xdotool click --clearmodifiers 4");
+    system(CIRCLE_CCW);
   }
 }
 
@@ -94,6 +95,14 @@ void move_mouse(Vector pos, Vector dir){
     system(command);
 }
 
-void mouse_click(Vector pos, Vector dir){
+void mouse_click(){
     system("xdotool click 1");
+}
+
+void screen_tap_action(){
+  system(TAP_SCREEN);
+}
+
+void key_tap_action(){
+  system(TAP_ACTION);
 }
