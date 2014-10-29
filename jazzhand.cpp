@@ -67,13 +67,9 @@ void GestureListener::onFrame(const Controller& controller) {
     const Hand hand = *hl;
     std::string handType = hand.isLeft() ? "Left hand" : "Right hand";
 
-    const Vector normal = hand.palmNormal();
-    const Vector direction = hand.direction();
-
-    Arm arm = hand.arm();
-    // std::cout << std::string(2, ' ') <<  "Arm direction: " << arm.direction()
-    //           << " wrist position: " << arm.wristPosition()
-    //           << " elbow position: " << arm.elbowPosition() << std::endl;
+    // For palm mouse maybe
+    // const Vector normal = hand.palmNormal();
+    // const Vector direction = hand.direction();
 
     // Get index finger
     Finger index = hand.fingers().fingerType(Finger::TYPE_INDEX)[0];
@@ -203,32 +199,9 @@ void GestureListener::onFrame(const Controller& controller) {
       }
       case Gesture::TYPE_SCREEN_TAP:
       {
-
-        // HandList hands = frame.hands();
-        // for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
-        //   // Get the first hand
-        //   const Hand hand = *hl;
-        //
-        //   // Get index finger
-        //   Finger index = hand.fingers().fingerType(Finger::TYPE_INDEX)[0];
-        //
-        //   if (index.isExtended()){
-        //     Vector pos = index.stabilizedTipPosition();
-        //     Vector dir = index.direction();
-        //
-        //     ScreenTapGesture screentap = gesture;
-        //     std::cout << std::string(2, ' ')
-        //         << "Screen Tap id: " << gesture.id()
-        //         << ", state: " << stateNames[gesture.state()]
-        //         << ", position: " << screentap.position()
-        //         << ", direction: " << screentap.direction()
-        //         << ", timestamp: " << frame.timestamp()
-        //         << std::endl;
-        //
-        //     mouse_click(pos,dir);
-        //   }
-          break;
-        }
+        screen_tap_action();
+        break;
+      }
       default:
         std::cout << std::string(2, ' ')  << "Unknown gesture type." << std::endl;
         break;
