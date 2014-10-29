@@ -67,13 +67,9 @@ void GestureListener::onFrame(const Controller& controller) {
     const Hand hand = *hl;
     std::string handType = hand.isLeft() ? "Left hand" : "Right hand";
 
-    const Vector normal = hand.palmNormal();
-    const Vector direction = hand.direction();
-
-    Arm arm = hand.arm();
-    // std::cout << std::string(2, ' ') <<  "Arm direction: " << arm.direction()
-    //           << " wrist position: " << arm.wristPosition()
-    //           << " elbow position: " << arm.elbowPosition() << std::endl;
+    // For palm mouse maybe
+    // const Vector normal = hand.palmNormal();
+    // const Vector direction = hand.direction();
 
     // Get index finger
     Finger index = hand.fingers().fingerType(Finger::TYPE_INDEX)[0];
@@ -91,10 +87,17 @@ void GestureListener::onFrame(const Controller& controller) {
 
       move_mouse(index_pos,index_dir);
     }
+<<<<<<< HEAD
 
     thumb_pos = thumb.tipPosition();
     thumb_dir = thumb.tipPosition();
 
+=======
+
+    thumb_pos = thumb.tipPosition();
+    thumb_dir = thumb.tipPosition();
+
+>>>>>>> 2cf6da79d2049d325951453a84db7168ecfadaab
     double i = distance2d_squared(index_pos,thumb_pos);
 
     if(i < 3500 && difftime(now,last) >= 1){
@@ -137,10 +140,17 @@ void GestureListener::onFrame(const Controller& controller) {
           gesture_id = circle.id();
           std::cout << "scroll START" << std::endl;
           break;
+<<<<<<< HEAD
         }
         else if (circle.state() == Gesture::STATE_START) {
           std::cout << "couldn't start scroll because existing scroll" << std::endl;
         }
+=======
+        }
+        else if (circle.state() == Gesture::STATE_START) {
+          std::cout << "couldn't start scroll because existing scroll" << std::endl;
+        }
+>>>>>>> 2cf6da79d2049d325951453a84db7168ecfadaab
 
         // Calculate angle swept since last frame
         float sweptAngle = 0;
@@ -203,6 +213,7 @@ void GestureListener::onFrame(const Controller& controller) {
       }
       case Gesture::TYPE_SCREEN_TAP:
       {
+<<<<<<< HEAD
 
         // HandList hands = frame.hands();
         // for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
@@ -229,6 +240,11 @@ void GestureListener::onFrame(const Controller& controller) {
         //   }
           break;
         }
+=======
+        screen_tap_action();
+        break;
+      }
+>>>>>>> 2cf6da79d2049d325951453a84db7168ecfadaab
       default:
         std::cout << std::string(2, ' ')  << "Unknown gesture type." << std::endl;
         break;
